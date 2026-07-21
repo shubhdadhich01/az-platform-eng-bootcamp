@@ -1,8 +1,7 @@
 # Local .terraform directories
 
-az-platform-eng-bootcamp/terraform/environment/prod/.terraform/
-az-platform-eng-bootcamp/terraform/environment/prod/*.tfstate
-az-platform-eng-bootcamp/terraform/environment/prod/*.tfstate.backup
-az-platform-eng-bootcamp/terraform/environment/prod/.terraform.lock.hcl
-
+terraform/environment/prod/.terraform/
+terraform/environment/prod/*.tfstate
+terraform/environment/prod/*.tfstate.backup
+terraform/environment/prod/.terraform.lock.hcl
 
