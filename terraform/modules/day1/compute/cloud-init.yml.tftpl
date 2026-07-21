@@ -1,0 +1,68 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - jq
+
+runcmd:
+
+  # Install Azure CLI
+  - curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+  # Login using Managed Identity
+  - az login --identity
+
+  # Wait a few seconds for RBAC propagation
+  - sleep 30
+
+  # Create initialization script
+  - |
+      cat <<'EOF' >/usr/local/bin/storage-init.sh
+      #!/bin/bash
+      set -e
+
+      STORAGE_ACCOUNT="${storage_account_name}"
+      CONTAINER="${container_name}"
+      FILE_NAME="welcome.txt"
+
+      echo "Checking if blob exists..."
+
+      EXISTS=$(az storage blob exists \
+        --account-name $STORAGE_ACCOUNT \
+        --container-name $CONTAINER \
+        --name $FILE_NAME \
+        --auth-mode login \
+        --query exists \
+        -o tsv)
+
+      if [ "$EXISTS" = "true" ]; then
+          echo "Blob already exists."
+          exit 0
+      fi
+
+      echo "Creating welcome.txt"
+
+      cat <<TXT >/tmp/welcome.txt
+       Welcome to Northwind Retail!
+       This file was automatically created during VM provisioning.
+       Managed Identity + Private Endpoint + Azure Storage
+      TXT
+
+      echo "Uploading blob..."
+
+      az storage blob upload \
+        --account-name $STORAGE_ACCOUNT \
+        --container-name $CONTAINER \
+        --name $FILE_NAME \
+        --file /tmp/welcome.txt \
+        --overwrite false \
+        --auth-mode login
+
+      echo "Upload complete."
+      EOF
+
+  - chmod +x /usr/local/bin/storage-init.sh
+
+  - /usr/local/bin/storage-init.sh

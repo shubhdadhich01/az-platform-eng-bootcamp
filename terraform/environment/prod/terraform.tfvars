@@ -1,0 +1,10 @@
+location            = "Central India"
+environment         = "prod"
+project_name        = "northwind"
+owner               = "Platform-Team"
+admin_username      = "azureuser"
+ssh_public_key_path = "C:/Users/hp/.ssh/id_ed25519.pub"
+log_retention_days  = 30
+secret_value        = "Northwind@123"
+storage_dns_name    = "privatelink.blob.core.windows.net"
+key_vault_dns_name  = "privatelink.vaultcore.azure.net"

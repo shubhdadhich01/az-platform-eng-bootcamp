@@ -1,0 +1,25 @@
+#cloud-config
+
+package_update: true
+
+packages:
+  - ansible
+
+write_files:
+  - path: /etc/ansible/hosts
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [web]
+      ${web_vm_name} ansible_host=${web_private_ip}
+
+      [app]
+      ${app_vm_name} ansible_host=${app_private_ip}
+
+      [all:vars]
+      ansible_user=${ansible_admin_username}
+      ansible_python_interpreter=/usr/bin/python3
+
+runcmd:
+  - ansible --version
+  - ansible-inventory --graph

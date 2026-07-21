@@ -1,0 +1,40 @@
+---
+- name: Configure Northwind Web Server
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Update APT package cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+    
+    - name: Deploy Northwind webpage
+      ansible.builtin.copy:
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <title>Northwind Retail</title>
+          </head>
+          <body>
+              <h1>Northwind Retail</h1>
+              <h2>Web Tier</h2>
+              <p> Server: {{ inventory_hostname }} </p>
+              <p> Configured using Ansible. </p>
+          </body>
+          </html>
+    - name: Ensure Nginx is running
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true

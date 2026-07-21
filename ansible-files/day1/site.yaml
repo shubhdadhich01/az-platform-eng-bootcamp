@@ -1,0 +1,4 @@
+---
+- import_playbook: configure-web.yml
+
+- import_playbook: configure-app.yml

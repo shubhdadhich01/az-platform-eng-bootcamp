@@ -1,0 +1,78 @@
+---
+- name: Configure Zero Credential Access
+  hosts: app
+  become: true
+
+  vars_files:
+    - /home/azureuser/terraform-ansible-bootcamp/vars.yaml
+
+  tasks:
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+        - curl
+        - apt-transport-https
+        - ca-certificates
+        - lsb-release
+        - gnupg
+        state: present
+        update_cache: true
+
+    - name: Download Microsoft signing key
+      ansible.builtin.shell: |
+        curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null
+      args:
+        creates: /etc/apt/trusted.gpg.d/microsoft.gpg
+
+    - name: Add Azure CLI repository
+      ansible.builtin.shell: |
+        AZ_REPO=$(lsb_release -cs)
+        echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" > /etc/apt/sources.list.d/azure-cli.list
+      args:
+        creates: /etc/apt/sources.list.d/azure-cli.list
+
+    - name: Install Azure CLI
+      ansible.builtin.apt:
+        name: azure-cli
+        state: present
+        update_cache: true
+ 
+    - name: Install auditd
+      ansible.builtin.apt:
+        name: auditd
+        state: present
+        update_cache: true
+
+    - name: Enable auditd
+      ansible.builtin.service:
+        name: auditd
+        state: started
+        enabled: true
+
+    - name: Copy Managed Identity script
+      ansible.builtin.template:
+        src: /home/azureuser/terraform-ansible-bootcamp/access-check.sh.j2
+        dest: /home/azureuser/access-check.sh
+        owner: azureuser
+        group: azureuser
+        mode: "0755"
+
+    - name: Execute access script
+      ansible.builtin.command:
+        cmd: /home/azureuser/access-check.sh
+      register: access_result
+
+    - name: Show output
+      ansible.builtin.debug:
+        var: access_result.stdout_lines
+
+    - name: Configure audit logging
+      ansible.builtin.lineinfile:
+        path: /etc/audit/rules.d/access.rules
+        line: "-w /home/azureuser/access-check.sh -p x -k managedidentity"
+        create: true
+
+    - name: Restart auditd
+      ansible.builtin.service:
+        name: auditd
+        state: restarted
