@@ -96,6 +96,7 @@ module "ansible" {
   depends_on = [ module.virtual-network ]
   source                 = "../../modules/day1/ansible-controller"
   resource_group_name    = local.naming.resource_group
+  resource_group_id      = module.virtual-network.resource_group_id
   location               = var.location
   ansible_vm_name        = local.naming.ansible_vm_name
   ansible_nic_name       = local.naming.ansible_nic_name
@@ -211,6 +212,47 @@ module "key-vault-secret" {
 #########################################################
 # Day 3
 #########################################################
+
+module "app-gateway" {
+  depends_on = [ module.virtual-network ]
+  source = "../../modules/day3/app-gateway"
+  resource_group_name             = local.naming.resource_group
+  location                        = var.location
+  spoke_vnet_name                 = module.virtual-network.spoke_vnet_name
+  appgw_subnet_name               = local.naming.appgw_subnet_name
+  appgw_subnet_cidr               = "10.1.4.0/24"
+  appgw_nsg_name                  = local.naming.appgw_nsg_name
+  public_ip_name                  = local.naming.appgw_public_ip
+  identity_name                   = local.naming.appgw_indentity_name
+  waf_policy_name                 = local.naming.waf_policy_name
+  appgw_name                      = local.naming.appgw_name
+  cert_vault_name                 = module.key-vault.key_vault_name
+  key_vault_certificate_secret_id = module.certificate-rbac.key_vault_certificate_secret_id
+  tags                            = local.common_tags
+
+}
+
+module "certificate-rbac" {
+  depends_on = [ module.key-vault, module.rbac ]
+  source = "../../modules/day3/certificates-rbac"
+  key_vault_id       = module.key-vault.key_vault_id
+  cert_name          = local.naming.appgw_cert_name
+  appgw_indentity_id = module.app-gateway.appgw_principal_id
+}
+
+module "vmss" {
+  depends_on = [ module.app-gateway ]
+  source = "../../modules/day3/vmss"
+  resource_group_name = local.naming.resource_group
+  location            = var.location
+  web_vmss_name       = local.naming.web_vmss_name
+  vmss_size           = "Standard_B1s"
+  admin_username      = var.admin_username
+  ssh_key             = file(pathexpand(var.ssh_public_key_path))
+  web_subnet_id       = module.virtual-network.spoke_subnets["web-subnet"]
+  backend_pool_ids    = [module.app-gateway.backend_pool_id]
+  tags                = local.common_tags
+}
 
 #########################################################
 # Day 4

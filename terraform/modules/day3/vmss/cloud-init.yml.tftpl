@@ -1,0 +1,34 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - nginx
+  - curl
+  - python3
+
+write_files:
+  - path: /etc/motd
+    permissions: "0644"
+    content: |
+      Northwind Retail - VM Scale Set
+      Base software installed via cloud-init.
+      Configuration is managed by Ansible.
+
+runcmd:
+  # Ensure Nginx starts automatically after every reboot
+  - systemctl enable nginx
+
+  # Start Nginx using its default configuration
+  - systemctl start nginx
+
+  # Display installed versions for troubleshooting
+  - nginx -v
+  - python3 --version
+  - curl --version
+
+  # Create a bootstrap log
+  - echo "Cloud-init completed successfully on $(date)" > /var/log/cloud-init-bootstrap.log
+
+final_message: "VM Scale Set bootstrap completed successfully."

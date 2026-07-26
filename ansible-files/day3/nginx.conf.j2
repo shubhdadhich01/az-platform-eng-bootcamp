@@ -1,0 +1,29 @@
+log_format json escape=json
+'{'
+'"timestamp":"$time_iso8601",'
+'"client_ip":"$remote_addr",'
+'"host":"$host",'
+'"method":"$request_method",'
+'"uri":"$request_uri",'
+'"status":"$status",'
+'"bytes":"$body_bytes_sent",'
+'"request_time":"$request_time",'
+'"user_agent":"$http_user_agent"'
+'}';
+
+server {
+    listen 80;
+    server_name {{ server_name }};
+    root {{ web_root }};
+    index index.html;
+    access_log {{ access_log }} json;
+    error_log {{ error_log }};
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    location {{ health_endpoint }} {
+        access_log off;
+        default_type text/plain;
+        return 200 "Healthy";
+    }
+}

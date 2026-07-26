@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Northwind Retail</title>
+    <style>
+        body{
+            background:#0f172a;
+            color:white;
+            text-align:center;
+            font-family:Arial;
+            margin-top:100px;
+        }
+        table{
+            margin:auto;
+            border-collapse:collapse;
+        }
+        td{
+            border:1px solid white;
+            padding:10px;
+        }
+    </style>
+</head>
+<body>
+<h1>Northwind Retail</h1>
+<h2>Azure VM Scale Set</h2>
+<table>
+<tr>
+<td>Hostname</td>
+<td>{{ inventory_hostname }}</td>
+</tr>
+<tr>
+<td>Private IP</td>
+<td>{{ ansible_host }}</td>
+</tr>
+<tr>
+<td>Managed By</td>
+<td>Ansible</td>
+</tr>
+</table>
+</body>
+</html>

@@ -4,7 +4,7 @@
   become: true
 
   vars_files:
-    - /home/azureuser/terraform-ansible-bootcamp/vars.yaml
+    - /home/azureuser/az-platform-eng-bootcamp/ansible-files/day2/vars.yaml
 
   tasks:
     - name: Install prerequisites
@@ -51,7 +51,7 @@
 
     - name: Copy Managed Identity script
       ansible.builtin.template:
-        src: /home/azureuser/terraform-ansible-bootcamp/access-check.sh.j2
+        src: /home/azureuser/az-platform-eng-bootcamp/ansible-files/day2/access-check.sh.j2
         dest: /home/azureuser/access-check.sh
         owner: azureuser
         group: azureuser

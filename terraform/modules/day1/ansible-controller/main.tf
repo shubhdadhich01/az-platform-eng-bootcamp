@@ -106,13 +106,18 @@ resource "azurerm_linux_virtual_machine" "ansible-vm" {
     version   = "latest"
   }
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   custom_data = base64encode(templatefile(
-    "${path.module}/cloud-init.yml.tftpl",
+    "${path.module}/cloud-init.yml.tftpl2",
     {
-      web_vm_name            = var.web_vm_name
-      web_private_ip         = var.web_private_ip
-      app_vm_name            = var.app_vm_name
-      app_private_ip         = var.app_private_ip
+      # web_vm_name            = var.web_vm_name
+      # web_private_ip         = var.web_private_ip
+      # app_vm_name            = var.app_vm_name
+      # app_private_ip         = var.app_private_ip
+      resource_group_name    = var.resource_group_name
       ansible_admin_username = var.ansible_admin_username
     }
   ))

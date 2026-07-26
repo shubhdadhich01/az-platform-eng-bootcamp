@@ -96,6 +96,10 @@ locals {
       var.environment
     )
 
+    #####################################################
+    # Day 2
+    #####################################################
+
     log_analytics_name = format(
       "log-analytics-%s",
       var.environment
@@ -159,6 +163,52 @@ locals {
 
     key_vault_diagnostics_name = format(
       "kv-diagnostics-%s",
+      var.environment
+    )
+
+    #####################################################
+    # Day 3
+    #####################################################
+
+    web_vmss_name = format(
+      "vmss-web-%s",
+      var.environment
+    )
+
+    appgw_subnet_name = format(
+      "appgw-subnet-%s",
+      var.environment
+    )
+
+    appgw_nsg_name = format(
+      "nsg-appgw-%s",
+      var.environment
+    )
+
+    appgw_public_ip = format(
+      "pip-appgw-%s",
+      var.environment
+    )
+
+    appgw_indentity_name = format(
+      "appgw-identity-%s",
+      var.environment
+    )
+
+    appgw_cert_name = format(
+      "appgw-cert-%s",
+      var.environment
+    )
+
+    waf_policy_name = format(
+      "wafp-%s-%s",
+      var.project_name,
+      var.environment
+    )
+
+    appgw_name = format(
+      "agw-%s-%s",
+      var.project_name,
       var.environment
     )
   }

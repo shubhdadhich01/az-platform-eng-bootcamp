@@ -12,7 +12,7 @@ resource "azurerm_role_assignment" "key-vault-secret-user" {
   principal_id         = var.app_vm_principal_id
 }
 
-resource "azurerm_role_assignment" "kv-admin-rbac" {
+resource "azurerm_role_assignment" "kv-adminstrator-rbac" {
   scope                = var.key_vault_id
   role_definition_name = "Key Vault Administrator"
   principal_id         = data.azurerm_client_config.current.object_id

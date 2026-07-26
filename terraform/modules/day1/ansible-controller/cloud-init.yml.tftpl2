@@ -1,0 +1,205 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - python3-pip
+  - unzip
+  - curl
+
+####################################################################
+# Create directory before write_files executes
+####################################################################
+
+bootcmd:
+  - mkdir -p /home/${ansible_admin_username}/ansible
+
+####################################################################
+# Configuration Files
+####################################################################
+
+write_files:
+
+  ####################################################################
+  # Ansible Configuration
+  ####################################################################
+
+  - path: /home/${ansible_admin_username}/ansible/ansible.cfg
+    permissions: "0644"
+    content: |
+      [defaults]
+      inventory = /home/azureuser/ansible/azure_inventory.py
+      host_key_checking = False
+      local_tmp = /home/${ansible_admin_username}/.ansible/tmp
+      remote_tmp = /tmp/.ansible/tmp
+      remote_user = ${ansible_admin_username}
+      interpreter_python = auto_silent
+
+####################################################################
+# Bootstrap Commands
+####################################################################
+
+runcmd:
+
+  ####################################################################
+  # Fix ownership
+  ####################################################################
+
+  - mkdir -p /home/${ansible_admin_username}/.ansible/tmp
+  - chown -R ${ansible_admin_username}:${ansible_admin_username} /home/${ansible_admin_username}
+  - chmod 700 /home/${ansible_admin_username}/.ansible
+
+  ####################################################################
+  # Install Ansible and Azure SDK for Ansible
+  ####################################################################
+
+  - python3 -m pip install --break-system-packages ansible
+  - python3 -m pip install --break-system-packages azure-identity azure-mgmt-resource azure-mgmt-compute azure-mgmt-network msrestazure
+
+  ####################################################################
+  # Install Azure CLI
+  ####################################################################
+
+  - curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+  ####################################################################
+  # Login using Managed Identity (verification only)
+  ####################################################################
+
+  - az login --identity
+
+  ####################################################################
+  # Verify Installation
+  ####################################################################
+
+  - ansible --version
+  - az account show
+
+final_message: "Ansible Controller bootstrap completed successfully."
+
+
+
+
+# package_update: true
+# package_upgrade: true
+
+# packages:
+#   - ansible
+#   - python3-pip
+#   - unzip
+#   - curl
+#   - jq
+
+# ####################################################################
+# # Create directory before write_files executes
+# ####################################################################
+
+# bootcmd:
+#   - mkdir -p /home/${ansible_admin_username}/ansible
+
+# ####################################################################
+# # Configuration Files
+# ####################################################################
+
+# write_files:
+
+#   ####################################################################
+#   # Ansible Configuration
+#   ####################################################################
+
+#   - path: /home/${ansible_admin_username}/ansible/ansible.cfg
+#     #owner: ${ansible_admin_username}:${ansible_admin_username}
+#     permissions: "0644"
+#     content: |
+#       [defaults]
+#       inventory = azure_rm.yml
+#       host_key_checking = False
+#       local_tmp = /home/azureuser/.ansible/tmp
+#       remote_tmp = /tmp/.ansible/tmp
+#       remote_user = ${ansible_admin_username}
+#       interpreter_python = auto_silent
+
+#       [inventory]
+#       enable_plugins = azure.azcollection.azure_rm
+
+#   ####################################################################
+#   # Azure Dynamic Inventory
+#   ####################################################################
+
+#   - path: /home/${ansible_admin_username}/ansible/azure_rm.yml
+#     #owner: ${ansible_admin_username}:${ansible_admin_username}
+#     permissions: "0644"
+#     content: |
+#       plugin: azure.azcollection.azure_rm
+#       auth_source: auto
+#       include_vm_resource_groups:
+#         - ${resource_group_name}
+#       hostnames:
+#         - private_ip_address
+#       compose:
+#         ansible_host: private_ip_address
+#       conditional_groups:
+#         app: "'vm-app-prod' in name"
+#         web: "'vm-web-prod' in name or 'vmss-web-prod' in name"
+
+# ####################################################################
+# # Bootstrap Commands
+# ####################################################################
+
+# runcmd:
+
+#   ####################################################################
+#   # Create Ansible temp directory
+#   ####################################################################
+
+#   - mkdir -p /home/${ansible_admin_username}/.ansible/tmp
+#   - chown -R ${ansible_admin_username}:${ansible_admin_username} /home/${ansible_admin_username}/.ansible
+#   - chmod 700 /home/${ansible_admin_username}/.ansible
+
+#   ####################################################################
+#   # Ensure ownership
+#   ####################################################################
+
+#   - chown -R ${ansible_admin_username}:${ansible_admin_username} /home/${ansible_admin_username}/ansible
+
+#   ####################################################################
+#   # Upgrade Pip
+#   ####################################################################
+
+#   - python3 -m pip install --upgrade pip
+
+#   ####################################################################
+#   # Install Azure SDK
+#   ####################################################################
+
+#   - pip3 install azure-identity azure-mgmt-resource azure-mgmt-compute azure-mgmt-network msrestazure
+
+#   ####################################################################
+#   # Install Azure CLI
+#   ####################################################################
+
+#   - curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+#   ####################################################################
+#   # Login using System Assigned Managed Identity
+#   ####################################################################
+
+#   - az login --identity
+
+#   ####################################################################
+#   # Install Azure Ansible Collection
+#   ####################################################################
+
+#   - ansible-galaxy collection install azure.azcollection
+
+#   ####################################################################
+#   # Verify Installation
+#   ####################################################################
+
+#   - ansible --version
+#   - az account show
+#   - az version
+#   - ansible-galaxy collection list
+
+# final_message: "Ansible Controller bootstrap completed successfully."

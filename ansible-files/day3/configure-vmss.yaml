@@ -1,0 +1,61 @@
+---
+- name: Configure identical Nginx Web Servers across VMSS
+  hosts: web
+  become: true
+
+  vars_files:
+    - /home/azureuser/az-platform-eng-bootcamp/day3/vars.yml
+
+  tasks:
+
+    - name: Verify Nginx package is installed
+      ansible.builtin.package:
+        name: nginx
+        state: present
+
+    - name: Create web root directory
+      ansible.builtin.file:
+        path: "{{ web_root }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Deploy landing page
+      ansible.builtin.template:
+        src: /home/azureuser/az-platform-eng-bootcamp/day3/index.html.j2
+        dest: "{{ web_root }}/index.html"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart Nginx
+
+    - name: Deploy Nginx configuration
+      ansible.builtin.template:
+        src: /home/azureuser/az-platform-eng-bootcamp/day3/nginx.conf.j2
+        dest: /etc/nginx/sites-available/default
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart Nginx
+
+    - name: Validate Nginx configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Ensure Nginx service is enabled
+      ansible.builtin.service:
+        name: nginx
+        enabled: true
+
+    - name: Ensure Nginx service is running
+      ansible.builtin.service:
+        name: nginx
+        state: started
+
+  handlers:
+
+    - name: Restart Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

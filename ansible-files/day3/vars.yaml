@@ -1,0 +1,10 @@
+---
+web_root: /var/www/html
+
+server_name: "_"
+
+health_endpoint: /healthz
+
+access_log: /var/log/nginx/access.log
+
+error_log: /var/log/nginx/error.log
