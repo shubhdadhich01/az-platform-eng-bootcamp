@@ -29,7 +29,7 @@ write_files:
     permissions: "0644"
     content: |
       [defaults]
-      inventory = /home/azureuser/az-platform-eng-bootcamp/day3/azure_inventory.py
+      inventory = /home/azureuser/az-platform-eng-bootcamp/ansible-files/day3/azure_inventory.py
       host_key_checking = False
       local_tmp = /home/${ansible_admin_username}/.ansible/tmp
       remote_tmp = /tmp/.ansible/tmp

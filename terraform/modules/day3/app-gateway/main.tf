@@ -121,6 +121,10 @@ resource "azurerm_web_application_firewall_policy" "waf" {
 #########################################################
 
 resource "azurerm_application_gateway" "appgw" {
+  depends_on = [ azurerm_subnet_network_security_group_association.appgw-association,
+                 azurerm_network_security_rule.allow-gateway-manager,
+                 azurerm_network_security_rule.allow-azure-lb,
+                 azurerm_network_security_rule.allow-client-web ]
   name                = var.appgw_name
   location            = var.location
   resource_group_name = var.resource_group_name

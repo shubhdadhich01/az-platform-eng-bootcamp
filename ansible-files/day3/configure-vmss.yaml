@@ -4,14 +4,16 @@
   become: true
 
   vars_files:
-    - /home/azureuser/az-platform-eng-bootcamp/day3/vars.yml
+    - /home/azureuser/az-platform-eng-bootcamp/ansible-files/day3/vars.yaml
 
   tasks:
 
     - name: Verify Nginx package is installed
-      ansible.builtin.package:
+      ansible.builtin.apt:
         name: nginx
         state: present
+        update_cache: yes
+        cache_valid_time: 3600
 
     - name: Create web root directory
       ansible.builtin.file:
@@ -23,7 +25,7 @@
 
     - name: Deploy landing page
       ansible.builtin.template:
-        src: /home/azureuser/az-platform-eng-bootcamp/day3/index.html.j2
+        src: /home/azureuser/az-platform-eng-bootcamp/ansible-files/day3/index.html.j2
         dest: "{{ web_root }}/index.html"
         owner: root
         group: root
@@ -32,7 +34,7 @@
 
     - name: Deploy Nginx configuration
       ansible.builtin.template:
-        src: /home/azureuser/az-platform-eng-bootcamp/day3/nginx.conf.j2
+        src: /home/azureuser/az-platform-eng-bootcamp/ansible-files/day3/nginx.conf.j2
         dest: /etc/nginx/sites-available/default
         owner: root
         group: root
