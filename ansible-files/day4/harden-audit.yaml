@@ -1,0 +1,77 @@
+---
+# Day 4 - Host hardening + audit trail for the zero-trust admin story.
+# Complements the Terraform-managed NSG Flow Logs / JIT / alerting with
+# in-guest controls: auditd, fail2ban, and SSH hardening.
+- name: Harden and audit Northwind hosts
+  hosts: app
+  become: true
+
+  tasks:
+    - name: Install auditd and fail2ban
+      ansible.builtin.apt:
+        name:
+          - auditd
+          - fail2ban
+        state: present
+        update_cache: true
+
+    - name: Enable auditd
+      ansible.builtin.service:
+        name: auditd
+        state: started
+        enabled: true
+
+    - name: Audit privilege escalation and SSH activity
+      ansible.builtin.copy:
+        dest: /etc/audit/rules.d/hardening.rules
+        owner: root
+        group: root
+        mode: "0640"
+        content: |
+          -w /etc/sudoers -p wa -k privilege_change
+          -w /etc/sudoers.d/ -p wa -k privilege_change
+          -w /var/log/auth.log -p wa -k auth_events
+          -w /etc/ssh/sshd_config -p wa -k sshd_config
+      notify: Restart auditd
+
+    - name: Disable SSH password authentication
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+      notify: Restart sshd
+
+    - name: Disable direct root login over SSH
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+      notify: Restart sshd
+
+    - name: Enable fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: started
+        enabled: true
+
+    - name: Confirm the Azure Monitor Agent heartbeat is running
+      ansible.builtin.shell: |
+        systemctl is-active azuremonitoragent || echo "AMA-NOT-RUNNING"
+      register: ama_status
+      changed_when: false
+      failed_when: false
+
+    - name: Report Azure Monitor Agent status
+      ansible.builtin.debug:
+        msg: "Azure Monitor Agent status: {{ ama_status.stdout }}"
+
+  handlers:
+    - name: Restart auditd
+      ansible.builtin.service:
+        name: auditd
+        state: restarted
+
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: ssh
+        state: restarted

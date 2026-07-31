@@ -1,0 +1,24 @@
+---
+- name: Install Azure Monitor Agent
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Download Azure Monitor Agent installer
+      ansible.builtin.get_url:
+        url: https://aka.ms/InstallAzureMonitorAgentLinux
+        dest: /tmp/InstallAzureMonitorAgentLinux.sh
+        mode: "0755"
+
+    - name: Install Azure Monitor Agent
+      ansible.builtin.command:
+        cmd: bash /tmp/InstallAzureMonitorAgentLinux.sh
+      args:
+        creates: /opt/microsoft/azuremonitoragent
+
+    - name: Enable Azure Monitor Agent
+      ansible.builtin.service:
+        name: azuremonitoragent
+        enabled: true
+        state: started

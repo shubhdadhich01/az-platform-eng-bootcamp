@@ -1,0 +1,25 @@
+---
+- name: Configure SSH Hardening
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Harden SSH configuration
+      ansible.builtin.blockinfile:
+        path: /etc/ssh/sshd_config
+        marker: "# {mark} CBC HARDENING"
+        block: |
+          PermitRootLogin no
+          PasswordAuthentication no
+          PubkeyAuthentication yes
+          PermitEmptyPasswords no
+          ClientAliveInterval 300
+          ClientAliveCountMax 2
+          X11Forwarding no
+          MaxAuthTries 3
+
+    - name: Restart SSH
+      ansible.builtin.service:
+        name: ssh
+        state: restarted

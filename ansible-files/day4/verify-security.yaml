@@ -1,0 +1,31 @@
+---
+- name: Verify Security Configuration
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Check auditd status
+      ansible.builtin.command:
+        cmd: systemctl is-active auditd
+      register: auditd_status
+      changed_when: false
+
+    - name: Check Azure Monitor Agent status
+      ansible.builtin.command:
+        cmd: systemctl is-active azuremonitoragent
+      register: ama_status
+      changed_when: false
+
+    - name: Check Fail2Ban status
+      ansible.builtin.command:
+        cmd: systemctl is-active fail2ban
+      register: fail2ban_status
+      changed_when: false
+
+    - name: Display security status
+      ansible.builtin.debug:
+        msg:
+          - "Auditd: {{ auditd_status.stdout }}"
+          - "Azure Monitor Agent: {{ ama_status.stdout }}"
+          - "Fail2Ban: {{ fail2ban_status.stdout }}"

@@ -1,0 +1,27 @@
+---
+- name: Configure Auditd
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Configure audit rules
+      ansible.builtin.copy:
+        dest: /etc/audit/rules.d/hardening.rules
+        owner: root
+        group: root
+        mode: "0640"
+        content: |
+          -w /etc/passwd -p wa -k identity
+          -w /etc/group -p wa -k identity
+          -w /etc/shadow -p wa -k identity
+          -w /etc/gshadow -p wa -k identity
+          -w /etc/sudoers -p wa -k privilege
+          -w /etc/sudoers.d -p wa -k privilege
+          -w /etc/ssh/sshd_config -p wa -k ssh
+
+    - name: Restart auditd
+      ansible.builtin.service:
+        name: auditd
+        state: restarted
+        enabled: true

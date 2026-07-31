@@ -1,0 +1,21 @@
+---
+- name: Install Security Packages
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - auditd
+          - audispd-plugins
+          - fail2ban
+          - curl
+          - wget
+          - unzip
+        state: present

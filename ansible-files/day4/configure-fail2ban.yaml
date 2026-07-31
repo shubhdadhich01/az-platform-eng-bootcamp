@@ -1,0 +1,28 @@
+---
+- name: Configure Fail2Ban
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Configure Fail2Ban jail
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [sshd]
+          enabled = true
+          port = ssh
+          logpath = %(sshd_log)s
+          backend = systemd
+          bantime = 1h
+          maxretry = 5
+          findtime = 10m
+
+    - name: Restart Fail2Ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: restarted
+        enabled: true
