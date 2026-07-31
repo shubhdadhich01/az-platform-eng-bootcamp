@@ -1,24 +1,59 @@
 ---
-- name: Install Azure Monitor Agent
-  hosts: all
-  become: true
+- name: Install Azure Monitor Agent on Azure VMs
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    resource_group: rg-northwind-prod
+    enable_auto_upgrade: true
 
   tasks:
 
-    - name: Download Azure Monitor Agent installer
-      ansible.builtin.get_url:
-        url: https://aka.ms/InstallAzureMonitorAgentLinux
-        dest: /tmp/InstallAzureMonitorAgentLinux.sh
-        mode: "0755"
+    - name: Get VM names from Azure Dynamic Inventory
+      set_fact:
+        vm_names: "{{ groups['all'] | reject('equalto','localhost') | list }}"
 
-    - name: Install Azure Monitor Agent
-      ansible.builtin.command:
-        cmd: bash /tmp/InstallAzureMonitorAgentLinux.sh
-      args:
-        creates: /opt/microsoft/azuremonitoragent
+    - name: Install Azure Monitor Agent Extension
+      ansible.builtin.command: >
+        az vm extension set
+        --resource-group {{ resource_group }}
+        --vm-name {{ item }}
+        --publisher Microsoft.Azure.Monitor
+        --name AzureMonitorLinuxAgent
+        {% if enable_auto_upgrade %}--enable-auto-upgrade true{% endif %}
+      loop: "{{ vm_names }}"
+      register: ama_install
 
-    - name: Enable Azure Monitor Agent
-      ansible.builtin.service:
-        name: azuremonitoragent
-        enabled: true
-        state: started
+    - name: Display installation result
+      ansible.builtin.debug:
+        var: ama_install.results
+
+
+
+
+
+# ---
+# - name: Install Azure Monitor Agent
+#   hosts: all
+#   become: true
+
+#   tasks:
+
+#     - name: Download Azure Monitor Agent installer
+#       ansible.builtin.get_url:
+#         url: https://aka.ms/InstallAzureMonitorAgentLinux
+#         dest: /tmp/InstallAzureMonitorAgentLinux.sh
+#         mode: "0755"
+
+#     - name: Install Azure Monitor Agent
+#       ansible.builtin.command:
+#         cmd: bash /tmp/InstallAzureMonitorAgentLinux.sh
+#       args:
+#         creates: /opt/microsoft/azuremonitoragent
+
+#     - name: Enable Azure Monitor Agent
+#       ansible.builtin.service:
+#         name: azuremonitoragent
+#         enabled: true
+#         state: started
