@@ -1,6 +1,6 @@
 ---
 - name: Configure Auditd
-  hosts: all
+  hosts: [web,app]
   become: true
 
   tasks:

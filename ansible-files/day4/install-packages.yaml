@@ -1,6 +1,6 @@
 ---
 - name: Install Security Packages
-  hosts: all
+  hosts: [web,app]
   become: true
 
   tasks:

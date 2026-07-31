@@ -1,6 +1,6 @@
 ---
 - name: Verify Security Configuration
-  hosts: all
+  hosts: [web,app]
   become: true
 
   tasks:

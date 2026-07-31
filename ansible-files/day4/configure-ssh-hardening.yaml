@@ -1,6 +1,6 @@
 ---
 - name: Configure SSH Hardening
-  hosts: all
+  hosts: [web,app]
   become: true
 
   tasks:

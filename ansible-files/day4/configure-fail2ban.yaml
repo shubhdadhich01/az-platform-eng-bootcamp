@@ -1,6 +1,6 @@
 ---
 - name: Configure Fail2Ban
-  hosts: all
+  hosts: [web,app]
   become: true
 
   tasks:

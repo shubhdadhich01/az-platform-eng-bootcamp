@@ -6,13 +6,12 @@
 
   vars:
     resource_group: rg-northwind-prod
-    enable_auto_upgrade: true
 
   tasks:
 
     - name: Get VM names from Azure Dynamic Inventory
       set_fact:
-        vm_names: "{{ groups['all'] | reject('equalto','localhost') | list }}"
+        vm_names: "{{ (groups['web'] + groups['app']) | reject('equalto','localhost') | list }}"
 
     - name: Install Azure Monitor Agent Extension
       ansible.builtin.command: >
@@ -21,7 +20,7 @@
         --vm-name {{ item }}
         --publisher Microsoft.Azure.Monitor
         --name AzureMonitorLinuxAgent
-        {% if enable_auto_upgrade %}--enable-auto-upgrade true{% endif %}
+
       loop: "{{ vm_names }}"
       register: ama_install
 
