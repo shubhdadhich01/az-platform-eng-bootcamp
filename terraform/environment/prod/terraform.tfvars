@@ -8,3 +8,9 @@ log_retention_days  = 30
 secret_value        = "Northwind@123"
 storage_dns_name    = "privatelink.blob.core.windows.net"
 key_vault_dns_name  = "privatelink.vaultcore.azure.net"
+
+# Day 4
+
+notification_email   = "secops@northwind.example"
+enable_jit           = true
+enable_defender_plan = true

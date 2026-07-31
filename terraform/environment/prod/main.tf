@@ -215,7 +215,7 @@ module "key-vault-secret" {
 
 module "app-gateway" {
   depends_on = [ module.virtual-network ]
-  source = "../../modules/day3/app-gateway"
+  source                          = "../../modules/day3/app-gateway"
   resource_group_name             = local.naming.resource_group
   location                        = var.location
   spoke_vnet_name                 = module.virtual-network.spoke_vnet_name
@@ -234,7 +234,7 @@ module "app-gateway" {
 
 module "certificate-rbac" {
   depends_on = [ module.key-vault, module.rbac ]
-  source = "../../modules/day3/certificates-rbac"
+  source             = "../../modules/day3/certificates-rbac"
   key_vault_id       = module.key-vault.key_vault_id
   cert_name          = local.naming.appgw_cert_name
   appgw_indentity_id = module.app-gateway.appgw_principal_id
@@ -242,7 +242,7 @@ module "certificate-rbac" {
 
 module "vmss" {
   depends_on = [ module.app-gateway ]
-  source = "../../modules/day3/vmss"
+  source              = "../../modules/day3/vmss"
   resource_group_name = local.naming.resource_group
   location            = var.location
   web_vmss_name       = local.naming.web_vmss_name
@@ -257,6 +257,41 @@ module "vmss" {
 #########################################################
 # Day 4
 #########################################################
+
+module "montitor-alert" {
+  depends_on = [ module.virtual-network ]
+  source              = "../../modules/day4/monitor-alert"
+  resource_group_name = local.naming.resource_group
+  action_group_name   = local.naming.action_group_name
+  notification_email  = var.notification_email
+  alert_name          = local.naming.jit_alert_name
+  tags                = local.common_tags
+}
+
+module "jit-access" {
+  depends_on = [ module.compute ]
+  source                = "../../modules/day4/jit-access"
+  jit_policy_name       = local.naming.jit_policy_name
+  enabled               = var.enable_jit
+  enable_defender_plan  = var.enable_defender_plan
+  resource_group_name   = local.naming.resource_group
+  location              = var.location
+  vm_ids                = [module.compute.web_vm.id, module.compute.app_vm.id]
+}
+
+module "monitor-dcr" {
+  depends_on = [ module.compute ]
+  source                     = "../../modules/day4/monitor-dcr"
+  monitor_dcr_name           = local.naming.monitor_dcr_name
+  location                   = var.location
+  resource_group_name        = local.naming.resource_group
+  log_analytics_workspace_id = module.log_analytics.log_workspace_id
+  vm_ids = {
+    ansible = module.ansible.ansible-Controller.id
+    web     = module.compute.web_vm.id
+    app     = module.compute.app_vm.id
+  }
+}
 
 #########################################################
 # Day 5

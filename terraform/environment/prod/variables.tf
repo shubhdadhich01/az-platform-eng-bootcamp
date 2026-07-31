@@ -53,3 +53,23 @@ variable "storage_dns_name" {
 variable "key_vault_dns_name" {
   type = string
 }
+
+#########################################################
+# Day 4
+#########################################################
+
+variable "notification_email" {
+  type = string
+}
+
+variable "enable_jit" {
+  description = "Enable Just-In-Time VM access (requires Defender for Servers)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_defender_plan" {
+  description = "Also enable the paid Defender for Servers P2 plan on the subscription"
+  type        = bool
+  default     = false
+}

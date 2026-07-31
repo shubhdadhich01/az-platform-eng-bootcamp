@@ -211,6 +211,30 @@ locals {
       var.project_name,
       var.environment
     )
+
+    #####################################################
+    # Day 4
+    #####################################################
+
+    action_group_name = format(
+      "ag-secops-%s",
+      var.environment
+    )
+
+    jit_alert_name = format(
+      "alert-jit-request-%s",
+      var.environment
+    )
+
+    jit_policy_name = format(
+      "jit-policy-%s",
+      var.environment
+    )
+
+    monitor_dcr_name = format(
+      "monitor-dcr-%s",
+      var.environment
+    )
   }
 
   common_tags = {
