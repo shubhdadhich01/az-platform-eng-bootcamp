@@ -48,3 +48,8 @@ resource "azurerm_role_assignment" "storage-crypto-user" {
   principal_id         = azurerm_user_assigned_identity.storage_identity.principal_id
 }
 
+resource "azurerm_role_assignment" "ansible_crypto_officer" {
+  scope                = var.key_vault_id
+  role_definition_name = "Key Vault Crypto Officer"
+  principal_id         = var.ansible_vm_principal_id
+}

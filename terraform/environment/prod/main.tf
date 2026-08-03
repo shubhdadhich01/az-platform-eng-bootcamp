@@ -334,6 +334,7 @@ module "encryption-rbac" {
   key_vault_id         = module.key-vault.key_vault_id
   des_identity_name   = local.naming.des_identity_name
   storage_account_name = local.naming.storage_account_name
+  ansible_vm_principal_id = module.ansible.ansible_vm_principal_id
   resource_group_name = local.naming.resource_group
   location            = var.location
   tags                = local.common_tags
