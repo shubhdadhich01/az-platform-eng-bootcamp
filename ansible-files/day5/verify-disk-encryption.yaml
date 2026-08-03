@@ -1,52 +1,78 @@
 ---
-- name: Verify Azure Disk Encryption
+- name: Verify Customer Managed Disk Encryption
   hosts: app
-  connection: local
   gather_facts: false
+  become: false
 
-  vars:
-    resource_group: "{{ resource_group }}"
+  vars_files:
+    - /home/azureuser/az-platform-eng-bootcamp/ansible-files/day5/vars.yaml
 
   tasks:
 
-    - name: Get OS Disk Name
+    #########################################################
+    # Get Attached Data Disks
+    #########################################################
+
+    - name: Get attached data disks
       ansible.builtin.command: >
         az vm show
         --resource-group {{ resource_group }}
         --name {{ inventory_hostname }}
-        --query "storageProfile.osDisk.name"
+        --query "storageProfile.dataDisks[].name"
         -o tsv
-      register: os_disk
+      delegate_to: localhost
+      register: data_disks
       changed_when: false
 
-    - name: Display OS Disk
+    - name: Display attached disks
       ansible.builtin.debug:
-        msg: "OS Disk: {{ os_disk.stdout }}"
+        msg: "{{ data_disks.stdout_lines }}"
 
-    - name: Verify Disk Encryption Set
+    #########################################################
+    # Verify Disk Encryption
+    #########################################################
+
+    - name: Get encryption details
       ansible.builtin.command: >
         az disk show
         --resource-group {{ resource_group }}
-        --name {{ os_disk.stdout }}
-        --query "encryption.diskEncryptionSetId"
-        -o tsv
-      register: des
-      changed_when: false
-
-    - name: Display Disk Encryption Set
-      ansible.builtin.debug:
-        var: des.stdout
-
-    - name: Verify Encryption Details
-      ansible.builtin.command: >
-        az disk show
-        --resource-group {{ resource_group }}
-        --name {{ os_disk.stdout }}
-        --query "encryption"
+        --name {{ item }}
+        --query "{Disk:name,EncryptionType:encryption.type,DiskEncryptionSet:encryption.diskEncryptionSetId}"
         -o json
-      register: encryption
+      delegate_to: localhost
+      loop: "{{ data_disks.stdout_lines }}"
+      register: disk_details
       changed_when: false
 
-    - name: Display Encryption Details
+    #########################################################
+    # Display Report
+    #########################################################
+
+    - name: Display encryption verification report
       ansible.builtin.debug:
-        var: encryption.stdout
+        msg: |
+          ====================================================
+          Disk Name           : {{ (item.stdout | from_json).Disk }}
+          Encryption Type     : {{ (item.stdout | from_json).EncryptionType }}
+          Disk Encryption Set : {{ (item.stdout | from_json).DiskEncryptionSet }}
+          ====================================================
+      loop: "{{ disk_details.results }}"
+
+    #########################################################
+    # Fail if CMK is not configured
+    #########################################################
+
+    - name: Validate Customer Managed Key
+      ansible.builtin.assert:
+        that:
+          - (item.stdout | from_json).EncryptionType == "EncryptionAtRestWithCustomerKey"
+          - (item.stdout | from_json).DiskEncryptionSet is not none
+          - (item.stdout | from_json).DiskEncryptionSet | length > 0
+        fail_msg: |
+          Customer Managed Key (CMK) is NOT configured for disk:
+          {{ (item.stdout | from_json).Disk }}
+
+        success_msg: |
+          Customer Managed Key (CMK) is successfully configured for disk:
+          {{ (item.stdout | from_json).Disk }}
+      loop: "{{ disk_details.results }}"
