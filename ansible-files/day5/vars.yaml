@@ -1,6 +1,6 @@
 key_vault_name: key-vault-northwind-prod
 
-certificate_name: northwind-storefront-cert
+certificate_name: appgw-cert-prod
 
 ssl_directory: /etc/nginx/ssl
 

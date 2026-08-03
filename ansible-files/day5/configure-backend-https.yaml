@@ -3,7 +3,7 @@
   hosts: app
   become: true
 
-  vars:
+  vars_files:
     - /home/azureuser/az-platform-eng-bootcamp/ansible-files/day5/vars.yaml
   tasks:
 
@@ -20,12 +20,18 @@
         group: root
         mode: "0755"
 
-    - name: Download PFX Certificate from Key Vault
-      ansible.builtin.command: >
-        az keyvault secret download
-        --vault-name {{ key_vault_name }}
-        --name {{ certificate_name }}
-        --file {{ pfx_file }}
+    - name: Download certificate (Base64)
+      ansible.builtin.shell: |
+        az keyvault secret show \
+        --vault-name {{ key_vault_name }} \
+        --name {{ certificate_name }} \
+        --query value \
+        -o tsv > /tmp/backend.pfx.b64
+      changed_when: true
+
+    - name: Decode PFX
+      ansible.builtin.shell: |
+        base64 -d /tmp/backend.pfx.b64 > /tmp/backend.pfx
       changed_when: true
 
     - name: Extract Public Certificate
@@ -55,9 +61,24 @@
         group: root
         mode: "0600"
 
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Enable Nginx
+      ansible.builtin.service:
+        name: nginx
+        enabled: true
+        state: started
+
     - name: Configure Nginx HTTPS
       ansible.builtin.template:
-        src: templates/nginx-https.conf.j2
+        src: /home/azureuser/az-platform-eng-bootcamp/ansible-files/day5/nginx-https.conf.j2
         dest: "{{ nginx_site }}"
         owner: root
         group: root
