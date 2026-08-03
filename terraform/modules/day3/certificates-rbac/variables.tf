@@ -9,3 +9,4 @@ variable "appgw_indentity_id" {
 variable "cert_name" {
   type = string
 }
+

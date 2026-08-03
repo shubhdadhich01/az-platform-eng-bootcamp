@@ -1,0 +1,52 @@
+---
+- name: Verify Azure Disk Encryption
+  hosts: app
+  connection: local
+  gather_facts: false
+
+  vars:
+    resource_group: "{{ resource_group }}"
+
+  tasks:
+
+    - name: Get OS Disk Name
+      ansible.builtin.command: >
+        az vm show
+        --resource-group {{ resource_group }}
+        --name {{ inventory_hostname }}
+        --query "storageProfile.osDisk.name"
+        -o tsv
+      register: os_disk
+      changed_when: false
+
+    - name: Display OS Disk
+      ansible.builtin.debug:
+        msg: "OS Disk: {{ os_disk.stdout }}"
+
+    - name: Verify Disk Encryption Set
+      ansible.builtin.command: >
+        az disk show
+        --resource-group {{ resource_group }}
+        --name {{ os_disk.stdout }}
+        --query "encryption.diskEncryptionSetId"
+        -o tsv
+      register: des
+      changed_when: false
+
+    - name: Display Disk Encryption Set
+      ansible.builtin.debug:
+        var: des.stdout
+
+    - name: Verify Encryption Details
+      ansible.builtin.command: >
+        az disk show
+        --resource-group {{ resource_group }}
+        --name {{ os_disk.stdout }}
+        --query "encryption"
+        -o json
+      register: encryption
+      changed_when: false
+
+    - name: Display Encryption Details
+      ansible.builtin.debug:
+        var: encryption.stdout

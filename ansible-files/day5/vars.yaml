@@ -1,0 +1,25 @@
+key_vault_name: key-vault-northwind-prod
+
+certificate_name: northwind-storefront-cert
+
+ssl_directory: /etc/nginx/ssl
+
+pfx_file: /tmp/backend.pfx
+
+certificate_file: /etc/nginx/ssl/backend.crt
+
+private_key_file: /etc/nginx/ssl/backend.key
+
+nginx_site: /etc/nginx/sites-available/default
+
+script_path: /usr/local/bin/key-rotation-check.sh
+
+log_path: /var/log/key-rotation.log
+
+resource_group: rg-northwind-prod
+
+# Customer Managed Key
+cmk_name: cmk-northwind-prod
+
+# HTTPS Certificate (Day 3)
+HTTPS_certificate_name: appgw-cert-prod

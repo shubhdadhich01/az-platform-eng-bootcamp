@@ -1,0 +1,17 @@
+server {
+    listen 443 ssl;
+    server_name northwind-storefront.local;
+
+    ssl_certificate     /etc/nginx/ssl/backend.crt;
+    ssl_certificate_key /etc/nginx/ssl/backend.key;
+
+    location / {
+        root /var/www/html;
+        index index.html;
+    }
+
+    location /healthz {
+        access_log off;
+        return 200 "Healthy";
+    }
+}

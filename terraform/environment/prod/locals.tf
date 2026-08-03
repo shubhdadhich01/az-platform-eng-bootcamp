@@ -235,6 +235,32 @@ locals {
       "monitor-dcr-%s",
       var.environment
     )
+
+    #####################################################
+    # Day 5
+    #####################################################
+
+    cmk_name = format(
+     "cmk-%s-%s",
+      var.project_name,
+      var.environment
+    )
+
+    des_name = format(
+      "des-%s-%s",
+      var.project_name,
+      var.environment
+    )
+
+    des_identity_name = format(
+      "des-identity-%s",
+      var.environment
+    )
+
+    encrypted_disk_name = format(
+      "app-disk-%s",
+      var.environment
+    )
   }
 
   common_tags = {

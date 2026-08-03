@@ -17,3 +17,7 @@ variable "resource_group_name" {
 variable "tags" {
   type = map(string)
 }
+
+variable "storage_identity_id" {
+  type = string
+}

@@ -175,9 +175,23 @@ resource "azurerm_application_gateway" "appgw" {
     name = local.backend_pool
   }
 
+  #=========================================================
+  # Day 5 Changes
+  # Trusted Root Certificate for Backend HTTPS Validation
+  #=========================================================
+
+  trusted_root_certificate {
+  name                = "northwind-storefront.local"
+  key_vault_secret_id = var.key_vault_certificate_secret_id
+  }
+
+  #########################################################
+  # Day 5 - HTTPS Backend Health Probe
+  #########################################################
+
   probe {
     name                = local.probe-name
-    protocol            = "Http"
+    protocol            = "Https"
     path                = var.health_probe_path
     interval            = 30
     timeout             = 30
@@ -186,15 +200,41 @@ resource "azurerm_application_gateway" "appgw" {
     match {status_code = ["200-399"]}
   }
 
+  # probe {
+  #   name                = local.probe-name
+  #   protocol            = "Http"
+  #   path                = var.health_probe_path
+  #   interval            = 30
+  #   timeout             = 30
+  #   unhealthy_threshold = 3
+  #   pick_host_name_from_backend_http_settings = true
+  #   match {status_code = ["200-399"]}
+  # }
+
+  #########################################################
+  # Day 5 - Backend HTTPS Settings
+  #########################################################
+
   backend_http_settings {
     name                  = local.backend_http_settings
     cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
+    port                  = 443
+    protocol              = "Https"
     request_timeout       = 30
     probe_name            = local.probe-name
     pick_host_name_from_backend_address = true
+    trusted_root_certificate_names = ["northwind-storefront.local"]
   }
+
+  # backend_http_settings {
+  #   name                  = local.backend_http_settings
+  #   cookie_based_affinity = "Disabled"
+  #   port                  = 80
+  #   protocol              = "Http"
+  #   request_timeout       = 30
+  #   probe_name            = local.probe-name
+  #   pick_host_name_from_backend_address = true
+  # }
 
   http_listener {
     name                           = local.http_listner

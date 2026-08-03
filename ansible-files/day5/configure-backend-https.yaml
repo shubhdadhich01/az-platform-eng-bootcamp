@@ -1,0 +1,84 @@
+---
+- name: Configure Backend HTTPS for Application Gateway Re-encryption
+  hosts: app
+  become: true
+
+  vars:
+    - /home/azureuser/az-platform-eng-bootcamp/ansible-files/day5/vars.yaml
+  tasks:
+
+    - name: Login to Azure using Managed Identity
+      ansible.builtin.command: az login --identity
+      register: login_result
+      changed_when: false
+
+    - name: Create Nginx SSL Directory
+      ansible.builtin.file:
+        path: "{{ ssl_directory }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Download PFX Certificate from Key Vault
+      ansible.builtin.command: >
+        az keyvault secret download
+        --vault-name {{ key_vault_name }}
+        --name {{ certificate_name }}
+        --file {{ pfx_file }}
+      changed_when: true
+
+    - name: Extract Public Certificate
+      ansible.builtin.command: >
+        openssl pkcs12
+        -in {{ pfx_file }}
+        -clcerts
+        -nokeys
+        -out {{ certificate_file }}
+        -passin pass:
+      changed_when: true
+
+    - name: Extract Private Key
+      ansible.builtin.command: >
+        openssl pkcs12
+        -in {{ pfx_file }}
+        -nocerts
+        -nodes
+        -out {{ private_key_file }}
+        -passin pass:
+      changed_when: true
+
+    - name: Set Permissions on Private Key
+      ansible.builtin.file:
+        path: "{{ private_key_file }}"
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Configure Nginx HTTPS
+      ansible.builtin.template:
+        src: templates/nginx-https.conf.j2
+        dest: "{{ nginx_site }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Validate Nginx Configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Restart Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+        enabled: true
+
+    - name: Verify HTTPS Endpoint
+      ansible.builtin.command: >
+        curl -k https://localhost/healthz
+      register: https_result
+      changed_when: false
+
+    - name: Display HTTPS Validation
+      ansible.builtin.debug:
+        var: https_result.stdout

@@ -14,7 +14,7 @@ resource "azurerm_key_vault" "key-vault"{
   sku_name                      = "standard"
   public_network_access_enabled = true
   rbac_authorization_enabled    = true
+  purge_protection_enabled      = true
   soft_delete_retention_days    = 7
   tags = var.tags
 }
-

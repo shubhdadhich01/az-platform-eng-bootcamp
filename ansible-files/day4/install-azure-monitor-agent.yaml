@@ -11,7 +11,7 @@
 
     - name: Get VM names from Azure Dynamic Inventory
       set_fact:
-        vm_names: "{{ (groups['web'] + groups['app']) | reject('equalto','localhost') | list }}"
+        vm_names: "{{ (groups['web'] + groups['app']) | reject('equalto', 'localhost') | reject('search', '^vmss-') | list }}"
 
     - name: Install Azure Monitor Agent Extension
       ansible.builtin.command: >

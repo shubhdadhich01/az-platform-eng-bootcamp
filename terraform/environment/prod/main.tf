@@ -135,6 +135,7 @@ module "storage" {
   location             = var.location
   resource_group_name  = local.naming.resource_group
   tags                 = local.common_tags
+  storage_identity_id  = module.encryption-rbac.storage_identity_id
 }
 
 module "key-vault" {
@@ -296,6 +297,47 @@ module "monitor-dcr" {
 #########################################################
 # Day 5
 #########################################################
+
+module "cmk"{
+  depends_on = [ module.key-vault, module.rbac ]
+  source       = "../../modules/day5/cmk"
+  cmk_name     = local.naming.cmk_name
+  key_vault_id = module.key-vault.key_vault_id
+  tags         = local.common_tags
+
+}
+
+module "disk-encryption" {
+  depends_on = [ module.cmk, module.compute, module.encryption-rbac ]
+  source              = "../../modules/day5/disk-encryption"
+  resource_group_name = local.naming.resource_group
+  location            = var.location
+  vm_id               = module.compute.app_vm.id
+  key_vault_key_id    = module.cmk.versionless_key_id
+  des_name            = local.naming.des_name
+  disk_name           = local.naming.encrypted_disk_name
+  des_identity_id     = module.encryption-rbac.des_identity_id
+  tags                = local.common_tags
+}
+
+module "storage-disk" {
+  depends_on = [ module.cmk, module.storage, module.encryption-rbac ]
+  source                    = "../../modules/day5/storage-disk"
+  storage_account_id        = module.storage.storage_account_id
+  key_vault_key_id          = module.cmk.cmk_id
+  user_assigned_identity_id = module.encryption-rbac.storage_identity_id
+}
+
+module "encryption-rbac" {
+  depends_on = [ module.key-vault ]
+  source               = "../../modules/day5/rbac"
+  key_vault_id         = module.key-vault.key_vault_id
+  des_identity_name   = local.naming.des_identity_name
+  storage_account_name = local.naming.storage_account_name
+  resource_group_name = local.naming.resource_group
+  location            = var.location
+  tags                = local.common_tags
+}
 
 #########################################################
 # Day 6

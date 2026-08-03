@@ -9,4 +9,3 @@ variable "key_vault_id" {
 variable "storage_container_id" {
   type = string
 }
-

@@ -17,6 +17,13 @@ resource "azurerm_storage_account" "sotarage-account" {
     versioning_enabled = true
     delete_retention_policy {days = 7}
   }
+#########################################################
+# Day 5(changes) - Storage  Managed Identity
+#########################################################
+  identity {
+    type = "UserAssigned"
+    identity_ids = [var.storage_identity_id]
+  }
 }
 
 #########################################################

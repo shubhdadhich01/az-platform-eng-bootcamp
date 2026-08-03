@@ -1,0 +1,59 @@
+#!/bin/bash
+
+#########################################################
+# Day 5
+# Key Rotation Awareness Script
+#########################################################
+
+KEY_VAULT="{{ key_vault_name }}"
+KEY_NAME="{{ cmk_name }}"
+
+echo "===================================================="
+echo "Azure Key Rotation Awareness Check"
+echo "===================================================="
+
+echo "Key Vault : $KEY_VAULT"
+echo "Key Name  : $KEY_NAME"
+echo
+
+#########################################################
+# Get Rotation Policy
+#########################################################
+
+echo "Rotation Policy"
+
+az keyvault key rotation-policy show \
+    --vault-name "$KEY_VAULT" \
+    --name "$KEY_NAME"
+
+echo
+
+#########################################################
+# Get Key Expiry
+#########################################################
+
+EXPIRY=$(az keyvault key show \
+    --vault-name "$KEY_VAULT" \
+    --name "$KEY_NAME" \
+    --query "attributes.exp" \
+    -o tsv)
+
+if [ -z "$EXPIRY" ]; then
+    echo "Unable to retrieve key expiry."
+    exit 1
+fi
+
+CURRENT=$(date +%s)
+DAYS_LEFT=$(( (EXPIRY - CURRENT) / 86400 ))
+
+echo "Days Remaining : $DAYS_LEFT"
+
+#########################################################
+# Warning
+#########################################################
+
+if [ "$DAYS_LEFT" -le 7 ]; then
+    echo "WARNING : Customer Managed Key expires within 7 days."
+else
+    echo "CMK rotation status is healthy."
+fi

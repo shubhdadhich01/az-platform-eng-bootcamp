@@ -1,0 +1,34 @@
+---
+- name: Configure CMK Rotation Awareness
+  hosts: app
+  become: true
+
+  tasks:
+
+    - name: Login using Managed Identity
+      ansible.builtin.command: az login --identity
+      changed_when: false
+
+    - name: Deploy Rotation Check Script
+      ansible.builtin.template:
+        src: /home/azureuser/az-platform-eng-bootcamp/ansible-files/day5/key-rotation-check.sh.j2
+        dest: /usr/local/bin/key-rotation-check.sh
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Configure Daily Cron Job
+      ansible.builtin.cron:
+        name: Azure CMK Rotation Check
+        minute: "0"
+        hour: "8"
+        job: "/usr/local/bin/key-rotation-check.sh >> /var/log/key-rotation.log 2>&1"
+
+    - name: Execute Rotation Check
+      ansible.builtin.command: /usr/local/bin/key-rotation-check.sh
+      register: rotation_result
+      changed_when: false
+
+    - name: Display Rotation Status
+      ansible.builtin.debug:
+        var: rotation_result.stdout_lines
