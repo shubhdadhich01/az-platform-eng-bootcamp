@@ -39,8 +39,9 @@ EXPIRY=$(az keyvault key show \
     -o tsv)
 
 if [ -z "$EXPIRY" ]; then
-    echo "Unable to retrieve key expiry."
-    exit 1
+    echo "Key Expiry : Not configured"
+else
+    echo "Key Expiry : $KEY_EXPIRY"
 fi
 
 CURRENT=$(date +%s)

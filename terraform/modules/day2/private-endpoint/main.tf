@@ -19,6 +19,8 @@ resource "azurerm_private_endpoint" "storage_pe" {
     name                 = "storage-axxount-zone-group"
     private_dns_zone_ids = [var.sa_private_dns_zone_id]
   }
+  #day6
+  tags = var.tags
 }
 
 #########################################################
@@ -42,4 +44,6 @@ resource "azurerm_private_endpoint" "key_vault_pe" {
     name                 = "key-vault-zone-group"
     private_dns_zone_ids = [var.kv_private_dns_zone_id]
   }
+  #day6
+  tags = var.tags
 }

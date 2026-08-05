@@ -33,3 +33,8 @@ variable "key_vault_id" {
 variable "kv_private_dns_zone_id" {
   type = string
 }
+
+#day6
+variable "tags" {
+  type = map(string)
+}

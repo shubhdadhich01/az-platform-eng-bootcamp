@@ -16,7 +16,7 @@
     - name: Deploy Rotation Check Script
       ansible.builtin.template:
         src: /home/azureuser/az-platform-eng-bootcamp/ansible-files/day5/key-rotation-check.sh.j2
-        dest: /usr/local/bin/key-rotation-check.sh
+        dest: /home/azureuser/key-rotation-check.sh
         mode: "0755"
       delegate_to: localhost
 
@@ -25,7 +25,7 @@
     #########################################################
 
     - name: Execute Rotation Check
-      ansible.builtin.command: /usr/local/bin/key-rotation-check.sh
+      ansible.builtin.command: /home/azureuser/key-rotation-check.sh
       delegate_to: localhost
       register: rotation_output
       changed_when: false
@@ -47,5 +47,5 @@
         name: "Azure CMK Rotation Check"
         minute: "0"
         hour: "2"
-        job: "/usr/local/bin/key-rotation-check.sh >> /var/log/key-rotation.log 2>&1"
+        job: "/home/azureuser/key-rotation-check.sh >> /home/azureuser/key-rotation.log 2>&1"
       delegate_to: localhost

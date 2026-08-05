@@ -117,9 +117,9 @@ locals {
     )
 
     key_vault_name = format(
-      "key-vault-%s-%s",
+      "key-vault-%s",
       var.project_name,
-      var.environment
+      #var.environment
     )
 
     application_secret_name = format(
@@ -259,6 +259,20 @@ locals {
 
     encrypted_disk_name = format(
       "app-disk-%s",
+      var.environment
+    )
+
+    #####################################################
+    # Day 6
+    #####################################################
+
+    policy_initiative_name = format(
+      "initiative-baseline-%s",
+      var.environment
+    )
+
+    policy_assignment_name = format(
+      "assign-baseline-%s",
       var.environment
     )
   }

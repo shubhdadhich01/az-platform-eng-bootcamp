@@ -190,6 +190,8 @@ module "private-endpoint" {
   key_vault_id                    = module.key-vault.key_vault_id
   sa_private_dns_zone_id          = module.private-dns.sa_private_dns_zone_id
   kv_private_dns_zone_id          = module.private-dns.kv_private_dns_zone_id
+  #day6
+  tags                            = local.common_tags
 }
 
 module "log-diagnostics" {
@@ -343,6 +345,16 @@ module "encryption-rbac" {
 #########################################################
 # Day 6
 #########################################################
+
+module "policy-govenanace" {
+  depends_on = [ module.virtual-network ]
+  source            = "../../modules/day6/policy-governance"
+  initiative_name   = local.naming.policy_initiative_name
+  assignment_name   = local.naming.policy_assignment_name
+  resource_group_id = module.virtual-network.resource_group_id
+  allowed_locations = ["centralindia"]
+  allowed_vm_skus   = ["Standard_B1s", "Standard_B2s"]
+}
 
 #########################################################
 # Day 7

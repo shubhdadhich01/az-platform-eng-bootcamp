@@ -1,0 +1,123 @@
+---
+# ============================================================
+# Day 6 - Governance at Scale
+# Azure Policy Compliance Reporting
+#
+# Purpose:
+# - Authenticate using the Ansible Controller VM's Managed Identity
+# - Retrieve Azure Policy compliance information
+# - Generate JSON and CSV reports
+# - Display a compliance summary
+#
+# NOTE:
+# This playbook runs entirely on the Ansible Controller VM.
+# The Controller's Managed Identity requires only the Reader
+# role on the target Resource Group (or Subscription).
+#
+# No configuration changes are made to Azure resources.
+# ============================================================
+
+- name: Northwind Azure Policy Compliance Reporting
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    resource_group: "{{ resource_group | default('rg-northwind-prod') }}"
+    report_dir: "/home/azureuser/reports"
+
+  tasks:
+
+    ###########################################################
+    # Authenticate to Azure
+    ###########################################################
+
+    - name: Login using Managed Identity
+      ansible.builtin.command:
+        cmd: az login --identity --output none
+      changed_when: false
+
+    ###########################################################
+    # Create local report directory
+    ###########################################################
+
+    - name: Create report directory
+      ansible.builtin.file:
+        path: "{{ report_dir }}"
+        state: directory
+        mode: "0755"
+
+    ###########################################################
+    # Generate timestamp
+    ###########################################################
+
+    - name: Generate report timestamp
+      ansible.builtin.command:
+        cmd: date +%Y%m%d-%H%M%S
+      register: report_timestamp
+      changed_when: false
+
+    ###########################################################
+    # Export JSON Compliance Report
+    ###########################################################
+
+    - name: Export compliance report (JSON)
+      ansible.builtin.shell: >
+        az policy state list
+        --resource-group {{ resource_group }}
+        --query "[].{
+          Resource:resourceId,
+          Policy:policyDefinitionName,
+          Compliance:complianceState
+        }"
+        --output json
+        > {{ report_dir }}/compliance-{{ report_timestamp.stdout }}.json
+      changed_when: false
+
+    ###########################################################
+    # Export CSV Compliance Report
+    ###########################################################
+
+    - name: Export compliance report (CSV)
+      ansible.builtin.shell: >
+        az policy state list
+        --resource-group {{ resource_group }}
+        --query "[].{
+          Resource:resourceId,
+          Policy:policyDefinitionName,
+          Compliance:complianceState
+        }"
+        --output tsv
+        > {{ report_dir }}/compliance-{{ report_timestamp.stdout }}.csv
+      changed_when: false
+
+    ###########################################################
+    # Retrieve Compliance Summary
+    ###########################################################
+
+    - name: Retrieve compliance summary
+      ansible.builtin.command:
+        cmd: >
+          az policy state summarize
+          --resource-group {{ resource_group }}
+          --output table
+      register: compliance_summary
+      changed_when: false
+
+    ###########################################################
+    # Display Summary
+    ###########################################################
+
+    - name: Display compliance summary
+      ansible.builtin.debug:
+        var: compliance_summary.stdout_lines
+
+    ###########################################################
+    # Display Report Locations
+    ###########################################################
+
+    - name: Display report locations
+      ansible.builtin.debug:
+        msg:
+          - "JSON Report : {{ report_dir }}/compliance-{{ report_timestamp.stdout }}.json"
+          - "CSV Report  : {{ report_dir }}/compliance-{{ report_timestamp.stdout }}.csv"

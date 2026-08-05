@@ -1,4 +1,4 @@
-key_vault_name: key-vault-northwind-prod
+key_vault_name: key-vault-northwind
 
 certificate_name: appgw-cert-prod
 
