@@ -275,6 +275,37 @@ locals {
       "assign-baseline-%s",
       var.environment
     )
+
+    #####################################################
+    # Day 7
+    #####################################################
+
+    func_subnet_name = format(
+      "func-subnet-%s",
+      var.environment
+    )
+
+    func_storage_name = format(
+      "%sfuncsa%s",
+      var.project_name,
+      var.environment
+    )
+
+    func_plan_name = format(
+      "asp-func-%s",
+      var.environment
+    )
+
+    func_app_insights_name = format(
+      "appi-func-%s",
+      var.environment
+    )
+
+    function_app_name = format(
+      "func-%s-manifest-%s",
+      var.project_name,
+      var.environment
+    )
   }
 
   common_tags = {

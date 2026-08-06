@@ -135,6 +135,7 @@ module "storage" {
   location             = var.location
   resource_group_name  = local.naming.resource_group
   tags                 = local.common_tags
+  #day4
   storage_identity_id  = module.encryption-rbac.storage_identity_id
 }
 
@@ -359,3 +360,25 @@ module "policy-govenanace" {
 #########################################################
 # Day 7
 #########################################################
+
+module "function-app" {
+  depends_on = [ module.storage, module.virtual-network, module.log_analytics, module.virtual-network ]
+  source                    = "../../modules/day7/function-app"
+  resource_group_name       = local.naming.resource_group
+  location                  = var.location
+  spoke_vnet_name           = module.virtual-network.spoke_vnet_name
+  func_subnet_name          = local.naming.func_subnet_name
+  func_subnet_cidr          = "10.1.5.0/24"
+  func_storage_name         = local.naming.func_storage_name
+  plan_name                 = local.naming.func_plan_name
+  app_insights_name         = local.naming.func_app_insights_name
+  function_app_name         = local.naming.function_app_name
+  log_analytics_id          = module.log_analytics.log_workspace_id
+  data_storage_account_name = module.storage.storage_account_name
+  data_container_name       = module.storage.container_name
+  data_container_id         = module.storage.storage_container_id
+  key_vault_id              = module.key-vault.key_vault_id
+  storage_container_id      = module.storage.storage_container_id
+  ansible_vm_principle_id   = module.ansible.ansible_vm_principal_id
+  tags                      = local.common_tags
+}

@@ -1,0 +1,96 @@
+---
+# Day 7 - End-to-End Validation of Event-Driven Processing
+#
+# Scenario:
+# Northwind Retail receives shipment manifests in a Storage Account.
+# Uploading a new shipment manifest automatically triggers an Azure Function
+# which validates the file and writes execution telemetry to Application Insights.
+#
+# This playbook is executed from the Ansible Controller VM using its
+# Managed Identity. It validates the complete workflow without directly
+# invoking the Function App.
+
+- name: Validate Event-Driven Function Processing
+  hosts: localhost
+  connection: local
+  become: true
+
+  vars_files:
+    - /home/azureuser/az-platform-eng-bootcamp/ansible-files/day7/vars.yaml
+
+  tasks:
+
+    ####################################################################
+    # Authenticate using the VM Managed Identity
+    ####################################################################
+
+    - name: Login to Azure using Managed Identity
+      ansible.builtin.command:
+        cmd: az login --identity --output none
+      changed_when: false
+
+    ####################################################################
+    # Generate a realistic shipment manifest
+    ####################################################################
+
+    - name: Create shipment manifest
+      ansible.builtin.copy:
+        dest: "{{ manifest_file }}"
+        mode: "0644"
+        content: |
+          ShipmentId,Warehouse,Destination,SKU,Quantity
+          SHIP-1001,Mumbai,Delhi,COFFEE-1KG,12
+          SHIP-1001,Mumbai,Delhi,TEA-500G,25
+          SHIP-1001,Mumbai,Delhi,SUGAR-2KG,8
+
+    ####################################################################
+    # Upload the manifest
+    # Blob upload automatically triggers the Azure Function
+    ####################################################################
+
+    - name: Upload shipment manifest
+      ansible.builtin.command: >
+        az storage blob upload
+        --account-name {{ storage_account }}
+        --container-name {{ container_name }}
+        --name shipment-manifest-{{ ansible_date_time.epoch }}.csv
+        --file {{ manifest_file }}
+        --auth-mode login
+        --overwrite
+      changed_when: true
+
+    ####################################################################
+    # Wait for Function execution
+    ####################################################################
+
+    - name: Wait for Azure Function execution
+      ansible.builtin.pause:
+        seconds: 60
+
+    ####################################################################
+    # Query Application Insights
+    ####################################################################
+
+    - name: Query recent Function executions
+      ansible.builtin.shell: >
+        az monitor app-insights query
+        --app {{ app_insights_name }}
+        --resource-group {{ resource_group }}
+        --analytics-query
+        "requests
+        | where timestamp > ago(10m)
+        | project timestamp,name,success,duration
+        | order by timestamp desc
+        | take 10"
+        --output table
+      register: ai_query
+      changed_when: false
+      failed_when: false
+
+    ####################################################################
+    # Display execution results
+    ####################################################################
+
+    - name: Show Function execution results
+      ansible.builtin.debug:
+        var: ai_query.stdout_lines

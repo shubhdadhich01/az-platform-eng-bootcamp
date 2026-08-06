@@ -1,0 +1,5 @@
+storage_account: northwindprodsa
+container_name: application-data-prod
+app_insights_name: appi-func-prod
+resource_group: rg-northwind-prod
+manifest_file: /tmp/shipment-manifest.csv
