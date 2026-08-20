@@ -40,7 +40,7 @@ resource "azurerm_service_plan" "func_plan" {
   location            = var.location
   resource_group_name = var.resource_group_name
   os_type             = "Linux"
-  sku_name            = "Y1"
+  sku_name            = "EP1"
   tags                = var.tags
 }
 
@@ -79,13 +79,12 @@ resource "azurerm_linux_function_app" "manifest_processor" {
   site_config {
     vnet_route_all_enabled = true
     application_stack {
-      python_version = "3.14"
+      python_version = "3.11"
     }
   }
 
   app_settings = {
     APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.func_ai.connection_string
-    WEBSITE_CONTENTOVERVNET               = "1"
     MANIFEST_STORAGE_ACCOUNT              = var.data_storage_account_name
     MANIFEST_CONTAINER                    = var.data_container_name
   }

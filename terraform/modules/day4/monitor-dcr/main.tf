@@ -55,6 +55,8 @@ resource "azurerm_monitor_data_collection_rule" "monitor-dcr" {
       streams = ["Microsoft-Syslog"]
    }
  }
+ # day6
+ tags = var.tags
 }
 
 resource "azurerm_monitor_data_collection_rule_association" "monitor-association" {

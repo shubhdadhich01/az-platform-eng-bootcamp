@@ -295,6 +295,8 @@ module "monitor-dcr" {
     web     = module.compute.web_vm.id
     app     = module.compute.app_vm.id
   }
+  #day 6
+  tags = local.common_tags
 }
 
 #########################################################

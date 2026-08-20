@@ -17,3 +17,7 @@ variable "log_analytics_workspace_id" {
 variable "vm_ids" {
   type = map(string)
 }
+
+variable "tags" {
+  type = map(string)
+}
